@@ -1,7 +1,6 @@
 const express = require('express')
-const app = express()
 const cors = require('cors')
-const mysql2 = require('mysql2')
+const app = express()
 const dotenv = require('dotenv')
 const bodyParser = require('body-parser')
 const authMiddleware = require('./authMiddleware')
@@ -16,14 +15,6 @@ const DB_USER = process.env.DB_USER
 const DB_PASSWORD = process.env.DB_PASSWORD 
 const DB_DATABASE = process.env.DB_DATABASE 
 const PORT = process.env.PORT || 8080
-
-const db  = mysql2.createPool({
-  connectionLimit : 10,
-  host            : DB_HOST,
-  user            : DB_USER,
-  password        : DB_PASSWORD,
-  database        : DB_DATABASE
-})
 
 app.post('/login', authMiddleware, (req, res) => {
   res.status(200).json(
