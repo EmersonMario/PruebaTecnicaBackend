@@ -3,7 +3,7 @@ const cors = require('cors')
 const app = express()
 const dotenv = require('dotenv')
 const bodyParser = require('body-parser')
-const { authMiddleware, getUsers } = require('./databaseQueries')
+const { authMiddleware, getUsers, authMiddlewareWithNewUser, getDashboardData } = require('./databaseQueries')
 
 dotenv.config()
 app.use(bodyParser.urlencoded({extended: false}))
@@ -27,11 +27,34 @@ app.post('/login', authMiddleware, (req, res) => {
   )
 })
 
+
 app.get('/colaboradores', getUsers, (req, res) => {
   res.status(200).json(
     { 
       message: 'Get users successfuly',
       users_data: req.users
+    }
+  )
+})
+
+app.get('/dashboard', getDashboardData, (req, res) => {
+  res.status(200).json(
+    { 
+      message: 'Get dashboard data successfuly',
+      dashboard_data: {
+        positions: req.userPositions,
+        position_counts: req.userPositionCounts,
+        departments: req.userDepartments,
+        department_counts: req.userDepartmentCounts
+      }
+    }
+  )
+})
+
+app.post('/set-new-user', authMiddlewareWithNewUser, (req, res) => {
+  res.status(200).json(
+    { 
+      message: 'New user added successfuly',
     }
   )
 })
