@@ -3,17 +3,13 @@ const cors = require('cors')
 const app = express()
 const dotenv = require('dotenv')
 const bodyParser = require('body-parser')
-const authMiddleware = require('./authMiddleware')
+const { authMiddleware, getUsers } = require('./databaseQueries')
 
 dotenv.config()
 app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())
 app.use(cors())
 
-const DB_HOST = process.env.DB_HOST 
-const DB_USER = process.env.DB_USER 
-const DB_PASSWORD = process.env.DB_PASSWORD 
-const DB_DATABASE = process.env.DB_DATABASE 
 const PORT = process.env.PORT || 8080
 
 app.post('/login', authMiddleware, (req, res) => {
@@ -27,6 +23,15 @@ app.post('/login', authMiddleware, (req, res) => {
         user_name: req.user.user_name,
         user_position: req.user.user_position
       } 
+    }
+  )
+})
+
+app.get('/colaboradores', getUsers, (req, res) => {
+  res.status(200).json(
+    { 
+      message: 'Get users successfuly',
+      users_data: req.users
     }
   )
 })

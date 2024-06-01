@@ -1,9 +1,8 @@
-const atob = require('atob')
-const dotenv = require('dotenv')
-const {Sequelize, QueryTypes} = require("sequelize")
+const dotenv = require('dotenv');
+const { Sequelize, QueryTypes } = require("sequelize");
+dotenv.config();
 
-dotenv.config()
-
+// Sequelize setup
 const sequelize = new Sequelize(
   process.env.DB_DATABASE,
   process.env.DB_USER,
@@ -21,14 +20,15 @@ const sequelize = new Sequelize(
       deletedAt: "deleted_at",
     },
     pool: {
-        max: 5,
-        min: 0,
-        acquire: 30000,
-        idle: 10000
+      max: 5,
+      min: 0,
+      acquire: 30000,
+      idle: 10000,
     },
-  },
-)
+  }
+);
 
+// Authentication middleware
 const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers['authorization']
   if (!authHeader) {
@@ -36,9 +36,9 @@ const authMiddleware = async (req, res, next) => {
   }
 
   const authToken = authHeader.split(' ')[1]
-  let userEmail, userPassword
+  let userEmail, userPassword;
   try {
-    [userEmail, userPassword] = atob(authToken).split(':')
+    [userEmail, userPassword] = Buffer.from(authToken, 'base64').toString('utf-8').split(':')
   } catch (err) {
     return res.status(400).json({ message: 'Invalid authentication token' })
   }
@@ -51,10 +51,10 @@ const authMiddleware = async (req, res, next) => {
         type: QueryTypes.SELECT
       }
     );
-    
+
     if (result.length > 0) {
       req.user = result[0]
-      next()
+      next();
     } else {
       res.status(401).json({ message: 'Invalid credentials' })
     }
@@ -64,4 +64,26 @@ const authMiddleware = async (req, res, next) => {
   }
 }
 
-module.exports = authMiddleware
+// Get users function
+const getUsers = async (req, res, next) => {
+  try {
+    const result = await sequelize.query(
+      "SELECT user_id, user_email, user_dni, user_position, user_name, user_last_name, user_gender FROM users",
+      {
+        type: QueryTypes.SELECT
+      }
+    );
+
+    if (result.length > 0) {
+      req.users = result
+      next()
+    } else {
+      res.status(404).json({ message: 'No users found' })
+    }
+  } catch (err) {
+    console.error("Database query error: " + err)
+    res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
+module.exports = { authMiddleware, getUsers }
