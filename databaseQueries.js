@@ -100,6 +100,30 @@ const authMiddlewareWithNewUser = async (req, res, next) => {
   }
 }
 
+const setEditUser = async (req, res, next) => {
+  console.log(req.body)
+  const { id, dni, nombre, apellido, cargo, telefono, correo, genero } = req.body
+
+  try {
+    const result = await sequelize.query(
+      "UPDATE users SET user_dni = ?, user_name = ?, user_last_name = ?, user_position = ?, user_telephone = ?, user_email = ?, user_gender = ? WHERE user_id = ?",
+      {
+        replacements: [dni, nombre, apellido, cargo, telefono, correo, genero, id],
+        type: QueryTypes.UPDATE
+      }
+    )
+
+    if (result) {
+      next()
+    } else {
+      res.status(401).json({ message: 'Error: No se encontró el usuario o no se pudo actualizar' })
+    }
+  } catch (err) {
+    console.error("Database query error: " + err)
+    res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
 // Get users
 const getUsers = async (req, res, next) => {
   try {
@@ -197,4 +221,4 @@ const getDashboardData = async (req, res, next) => {
   }
 }
 
-module.exports = { authMiddleware, getUsers, authMiddlewareWithNewUser, getDashboardData }
+module.exports = { authMiddleware, getUsers, authMiddlewareWithNewUser, getDashboardData, setEditUser }
