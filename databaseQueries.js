@@ -82,7 +82,7 @@ const authMiddlewareWithNewUser = async (req, res, next) => {
 
   try {
     const result = await sequelize.query(
-      "INSERT INTO users (user_dni, user_name, user_last_name, user_position, user_telephone, user_email, user_gender, user_password) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO users (user_dni, user_name, user_last_name, user_position, user_telephone, user_email, user_gender, user_password, user_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)",
       {
         replacements: [dni, nombre, apellido, cargo, telefono, correo, genero, userPassword],
         type: QueryTypes.INSERT
@@ -124,15 +124,38 @@ const setEditUser = async (req, res, next) => {
   }
 }
 
+const setDeleteUser = async (req, res, next) => {
+  const { id } = req.body
+
+  try {
+    const result = await sequelize.query(
+      "UPDATE users SET user_active = 0 WHERE user_id = ?",
+      {
+        replacements: [id],
+        type: QueryTypes.UPDATE
+      }
+    )
+
+    if (result) {
+      next()
+    } else {
+      res.status(401).json({ message: 'Error: No se encontró el usuario o no se pudo actualizar' })
+    }
+  } catch (err) {
+    console.error("Database query error: " + err)
+    res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
 // Get users
 const getUsers = async (req, res, next) => {
   try {
     const result = await sequelize.query(
-      "SELECT user_id, user_email, user_dni, user_position, user_name, user_last_name, user_gender, user_telephone FROM users",
+      "SELECT user_id, user_email, user_dni, user_position, user_name, user_last_name, user_gender, user_telephone, user_active FROM users WHERE user_active = 1",
       {
         type: QueryTypes.SELECT
       }
-    );
+    )
 
     if (result.length > 0) {
       req.users = result
@@ -150,7 +173,7 @@ const getUsers = async (req, res, next) => {
 const getDashboardData = async (req, res, next) => {
   try {
     const result = await sequelize.query(
-      "SELECT user_position, user_dni FROM users",
+      "SELECT user_position, user_dni FROM users WHERE user_active = 1",
       {
         type: QueryTypes.SELECT
       }
@@ -221,4 +244,4 @@ const getDashboardData = async (req, res, next) => {
   }
 }
 
-module.exports = { authMiddleware, getUsers, authMiddlewareWithNewUser, getDashboardData, setEditUser }
+module.exports = { authMiddleware, getUsers, authMiddlewareWithNewUser, getDashboardData, setEditUser, setDeleteUser }

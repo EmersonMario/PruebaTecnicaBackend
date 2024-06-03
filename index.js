@@ -3,7 +3,7 @@ const cors = require('cors')
 const app = express()
 const dotenv = require('dotenv')
 const bodyParser = require('body-parser')
-const { authMiddleware, getUsers, authMiddlewareWithNewUser, getDashboardData, setEditUser } = require('./databaseQueries')
+const { authMiddleware, getUsers, authMiddlewareWithNewUser, getDashboardData, setEditUser, setDeleteUser } = require('./databaseQueries')
 
 dotenv.config()
 app.use(bodyParser.urlencoded({extended: false}))
@@ -63,6 +63,14 @@ app.post('/set-edit-user', setEditUser, (req, res) => {
   res.status(200).json(
     { 
       message: 'User edited successfuly'
+    }
+  )
+})
+
+app.post('/set-delete-user', setDeleteUser, (req, res) => {
+  res.status(200).json(
+    { 
+      message: 'User inactive successfuly'
     }
   )
 })
